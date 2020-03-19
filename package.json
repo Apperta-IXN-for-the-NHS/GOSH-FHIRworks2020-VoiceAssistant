@@ -6,8 +6,8 @@
     "license": "MIT",
     "main": "index.js",
     "scripts": {
-        "start": "node ./index.js",
-        "watch": "nodemon ./index.js",
+        "start": "node src/index.js",
+        "watch": "nodemon src/index.js",
         "lint": "eslint .",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
@@ -17,6 +17,8 @@
     },
     "dependencies": {
         "botbuilder": "~4.6.1",
+        "botbuilder-ai": "^4.7.2",
+        "botbuilder-dialogs": "^4.7.2",
         "dotenv": "^8.2.0",
         "restify": "~8.4.0"
     },

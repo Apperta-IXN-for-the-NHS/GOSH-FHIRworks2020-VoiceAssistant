@@ -7,22 +7,16 @@ const restify = require('restify');
 
 // Import required bot services.
 // See https://aka.ms/bot-services to learn more about the different parts of a bot.
-const { BotFrameworkAdapter } = require('botbuilder');
+const { BotFrameworkAdapter, ConversationState, MemoryStorage, UserState } = require('botbuilder');
 
 // This bot's main dialog.
-const { EchoBot } = require('./bot');
+// const { EchoBot } = require('./bot');
+const { DialogBot } = require('./bots/dialogBot');
+const { UserProfileDialog } = require('./dialogs/userProfileDialog');
 
 // Import required bot configuration.
-const ENV_FILE = path.join(__dirname, '.env');
+const ENV_FILE = path.join(__dirname, '../.env');
 dotenv.config({ path: ENV_FILE });
-
-// Create HTTP server
-const server = restify.createServer();
-server.listen(process.env.port || process.env.PORT || 3978, () => {
-    console.log(`\n${ server.name } listening to ${ server.url }`);
-    console.log('\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator');
-    console.log('\nTo talk to your bot, open the emulator select "Open Bot"');
-});
 
 // Create adapter.
 // See https://aka.ms/about-bot-adapter to learn more about how bots work.
@@ -51,15 +45,30 @@ adapter.onTurnError = async (context, error) => {
     // Send a message to the user
     await context.sendActivity('The bot encounted an error or bug.');
     await context.sendActivity('To continue to run this bot, please fix the bot source code.');
+
+    await conversationState.delete(context);
 };
 
 // Create the main dialog.
-const myBot = new EchoBot();
+// const myBot = new EchoBot();
+const memoryStorage = new MemoryStorage();
+const conversationState = new ConversationState(memoryStorage);
+const userState = new UserState(memoryStorage);
+const dialog = new UserProfileDialog(userState);
+const bot = new DialogBot(conversationState, userState, dialog);
+
+// Create HTTP server
+const server = restify.createServer();
+server.listen(process.env.port || process.env.PORT || 3978, () => {
+    console.log(`\n${ server.name } listening to ${ server.url }`);
+    console.log('\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator');
+    console.log('\nTo talk to your bot, open the emulator select "Open Bot"');
+});
 
 // Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
     adapter.processActivity(req, res, async (context) => {
         // Route to main dialog.
-        await myBot.run(context);
+        await bot.run(context);
     });
 });
